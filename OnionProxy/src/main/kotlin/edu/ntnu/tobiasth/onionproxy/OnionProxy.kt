@@ -1,5 +1,6 @@
 package edu.ntnu.tobiasth.onionproxy
 
+import edu.ntnu.tobiasth.onionproxy.socks.SocksRequest
 import edu.ntnu.tobiasth.onionproxy.socks.handshake.HandshakeMethod
 import edu.ntnu.tobiasth.onionproxy.socks.handshake.HandshakeRequest
 import edu.ntnu.tobiasth.onionproxy.socks.handshake.HandshakeResponse
@@ -9,6 +10,7 @@ import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 
+// ? Test with curl: curl -x socks5://127.0.0.1:1080 http://datakom.no
 class OnionProxy {
     private val logger = KotlinLogging.logger {}
 
@@ -41,16 +43,11 @@ class OnionProxy {
     private fun performSocksHandshake(reader: BufferedReader, writer: PrintWriter) {
         logger.debug { "Reading handshake request from socket." }
 
-        val bytes = arrayListOf<Byte>()
-        while(reader.ready()) {
-            bytes.add(reader.read().toByte())
-        }
-
-        val request = HandshakeRequest(bytes.toByteArray())
+        val request = HandshakeRequest(reader)
         val method = HandshakeMethod.NO_AUTHENTICATION_REQUIRED
 
         if (method !in request.methods) {
-            throw IllegalArgumentException("Method ${method} is not in client handshake.")
+            throw IllegalArgumentException("Method $method is not in client handshake.")
         }
 
         logger.debug { "$method is the server method." }
@@ -63,6 +60,6 @@ class OnionProxy {
     }
 
     private fun handleCommand(reader: BufferedReader, writer: PrintWriter) {
-
+        val request = SocksRequest(reader)
     }
 }
