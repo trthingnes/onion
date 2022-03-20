@@ -8,13 +8,13 @@ import edu.ntnu.tobiasth.onionproxy.socks.request.SocksCommand
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksReply
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksResponse
 import mu.KotlinLogging
+import java.io.BufferedOutputStream
 import java.io.DataInputStream
-import java.io.PrintWriter
 
 class Socks5: SocksProtocol {
     private val logger = KotlinLogging.logger {}
 
-    override fun performHandshake(input: DataInputStream, writer: PrintWriter) {
+    override fun performHandshake(input: DataInputStream, output: BufferedOutputStream) {
         logger.debug { "Reading handshake request from socket." }
 
         val request = SocksHandshakeRequest(input)
@@ -27,11 +27,11 @@ class Socks5: SocksProtocol {
 
         val response = SocksHandshakeResponse(method, request)
         logger.debug { "Writing handshake response to client." }
-        response.toByteList().forEach { writer.write(it) }
-        writer.flush()
+        response.toByteList().forEach { output.write(it) }
+        output.flush()
     }
 
-    override fun handleCommand(input: DataInputStream, writer: PrintWriter) {
+    override fun handleCommand(input: DataInputStream, output: BufferedOutputStream) {
         val request = SocksRequest(input)
 
         logger.debug { "Performing command ${request.command}." }
@@ -42,8 +42,8 @@ class Socks5: SocksProtocol {
                 // Return the proxy socket information.
 
                 val response = SocksResponse(SocksReply.SUCCEEDED, 8888)
-                response.toByteList().forEach { writer.write(it) }
-                writer.flush()
+                response.toByteList().forEach { output.write(it) }
+                output.flush()
 
                 // ? Potentially do this in a separate thread.
             }

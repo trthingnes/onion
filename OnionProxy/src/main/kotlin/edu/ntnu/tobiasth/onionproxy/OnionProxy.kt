@@ -38,12 +38,12 @@ class OnionProxy {
         logger.debug { "Got a connection from ${socket.inetAddress}:${socket.port}." }
 
         val input = DataInputStream(socket.getInputStream())
-        val writer = PrintWriter(socket.getOutputStream(), true)
+        val output = BufferedOutputStream(socket.getOutputStream())
 
-        socks.performHandshake(input, writer)
+        socks.performHandshake(input, output)
 
         while(!socket.isClosed) {
-            socks.handleCommand(input, writer)
+            socks.handleCommand(input, output)
         }
 
         logger.debug { "Connection to client has been closed." }
