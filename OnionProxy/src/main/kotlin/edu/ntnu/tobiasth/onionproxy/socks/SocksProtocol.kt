@@ -2,6 +2,8 @@ package edu.ntnu.tobiasth.onionproxy.socks
 
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
+import java.io.InputStream
+import java.io.OutputStream
 
 interface SocksProtocol {
     /**
@@ -19,5 +21,5 @@ interface SocksProtocol {
      * Forwards content from client to remote and vice versa.
      * Should only be used after Connect command.
      */
-    fun exchangeData(clientIn: DataInputStream, clientOut: BufferedOutputStream, remoteIn: DataInputStream, remoteOut: BufferedOutputStream)
+    fun exchangeData(clientIn: InputStream, clientOut: OutputStream, remoteIn: InputStream, remoteOut: OutputStream)
 }

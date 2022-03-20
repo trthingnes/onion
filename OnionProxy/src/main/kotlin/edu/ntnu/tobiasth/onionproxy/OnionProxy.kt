@@ -7,6 +7,10 @@ import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 
+fun main() {
+    OnionProxy()
+}
+
 // ? Test with curl? Use: curl -x socks5://127.0.0.1[:port] http://datakom.no
 class OnionProxy {
     private val logger = KotlinLogging.logger {}
@@ -38,8 +42,8 @@ class OnionProxy {
     }
 
     private fun handleClient(socket: Socket) {
-        val input = SocketUtil.getInput(socket)
-        val output = SocketUtil.getOutput(socket)
+        val input = SocketUtil.getDirectInput(socket)
+        val output = SocketUtil.getDirectOutput(socket)
 
         socks.handleHandshake(input, output)
         socks.handleCommand(input, output)

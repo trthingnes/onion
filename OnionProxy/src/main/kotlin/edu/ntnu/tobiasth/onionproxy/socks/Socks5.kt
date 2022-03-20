@@ -10,9 +10,7 @@ import edu.ntnu.tobiasth.onionproxy.socks.request.SocksReply
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksResponse
 import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
-import java.io.BufferedOutputStream
-import java.io.DataInputStream
-import java.io.IOException
+import java.io.*
 import java.net.Socket
 import kotlin.concurrent.thread
 
@@ -51,7 +49,7 @@ class Socks5: SocksProtocol {
                 output.flush()
 
                 logger.info { "Starting data exchange." }
-                exchangeData(input, output, SocketUtil.getInput(remoteSocket), SocketUtil.getOutput(remoteSocket))
+                exchangeData(input, output, SocketUtil.getDirectInput(remoteSocket), SocketUtil.getDirectOutput(remoteSocket))
             }
 
             // TODO: SocksCommand.BIND {}
@@ -66,8 +64,8 @@ class Socks5: SocksProtocol {
         }
     }
 
-    override fun exchangeData(clientIn: DataInputStream, clientOut: BufferedOutputStream, remoteIn: DataInputStream, remoteOut: BufferedOutputStream) {
-        val thread = thread { // Start separate thread so we have two.
+    override fun exchangeData(clientIn: InputStream, clientOut: OutputStream, remoteIn: InputStream, remoteOut: OutputStream) {
+        val thread = thread { // Start separate thread, so we have one for each direction of flow.
             val buffer = ByteArray(4096)
 
             try {
