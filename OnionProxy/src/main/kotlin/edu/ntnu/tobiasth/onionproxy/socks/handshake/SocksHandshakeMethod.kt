@@ -1,6 +1,6 @@
 package edu.ntnu.tobiasth.onionproxy.socks.handshake
 
-enum class HandshakeMethod(val code: Int) {
+enum class SocksHandshakeMethod(val code: Int) {
     NO_AUTHENTICATION_REQUIRED(0x00),
     GSSAPI(0x01),
     USERNAME_PASSWORD(0x02),
@@ -11,7 +11,7 @@ enum class HandshakeMethod(val code: Int) {
     NO_ACCEPTABLE_METHODS(0xFF);
 
     companion object {
-        fun of(code: Int): HandshakeMethod {
+        fun of(code: Int): SocksHandshakeMethod {
             return values().first { m -> m.code == code }
         }
     }

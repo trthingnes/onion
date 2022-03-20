@@ -1,4 +1,4 @@
-package edu.ntnu.tobiasth.onionproxy.socks
+package edu.ntnu.tobiasth.onionproxy.socks.request
 
 enum class SocksAddressType(val code: Int, val size: Int) {
     IPV4(0x01, 4),

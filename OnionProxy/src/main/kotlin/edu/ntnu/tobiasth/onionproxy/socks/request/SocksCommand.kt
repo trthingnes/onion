@@ -1,4 +1,4 @@
-package edu.ntnu.tobiasth.onionproxy.socks
+package edu.ntnu.tobiasth.onionproxy.socks.request
 
 enum class SocksCommand(val code: Int) {
     CONNECT(0x01),

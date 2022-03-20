@@ -1,9 +1,5 @@
 package edu.ntnu.tobiasth.onionproxy
 
-import edu.ntnu.tobiasth.onionproxy.socks.SocksRequest
-import edu.ntnu.tobiasth.onionproxy.socks.handshake.HandshakeMethod
-import edu.ntnu.tobiasth.onionproxy.socks.handshake.HandshakeRequest
-import edu.ntnu.tobiasth.onionproxy.socks.handshake.HandshakeResponse
 import mu.KotlinLogging
 import java.io.*
 import java.net.ServerSocket
@@ -13,6 +9,10 @@ import kotlin.concurrent.thread
 // ? Test with curl: curl -x socks5://127.0.0.1:1080 http://datakom.no
 class OnionProxy {
     private val logger = KotlinLogging.logger {}
+    private val socks = when (Config.SOCKS_VERSION) {
+        5 -> Socks5()
+        else -> { throw NotImplementedError("Socks version ${Config.SOCKS_VERSION} not supported.") }
+    }
 
     init {
         val server = ServerSocket(Config.SOCKS_PORT)
@@ -26,6 +26,8 @@ class OnionProxy {
                 }
                 catch (e: Exception) {
                     logger.error { "An error occured with the message '${e.message}'." }
+                }
+                finally {
                     socket.close()
                 }
             }
@@ -34,32 +36,16 @@ class OnionProxy {
 
     private fun handleClient(socket: Socket) {
         logger.debug { "Got a connection from ${socket.inetAddress}:${socket.port}." }
-        val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+
+        val input = DataInputStream(socket.getInputStream())
         val writer = PrintWriter(socket.getOutputStream(), true)
 
-        performSocksHandshake(reader, writer)
-    }
+        socks.performHandshake(input, writer)
 
-    private fun performSocksHandshake(reader: BufferedReader, writer: PrintWriter) {
-        logger.debug { "Reading handshake request from socket." }
-
-        val request = HandshakeRequest(reader)
-        val method = HandshakeMethod.NO_AUTHENTICATION_REQUIRED
-
-        if (method !in request.methods) {
-            throw IllegalArgumentException("Method $method is not in client handshake.")
+        while(!socket.isClosed) {
+            socks.handleCommand(input, writer)
         }
 
-        logger.debug { "$method is the server method." }
-
-        val response = HandshakeResponse(request, method)
-
-        logger.debug { "Writing handshake response to client." }
-        writer.write(String(response.toByteArray()))
-        writer.flush()
-    }
-
-    private fun handleCommand(reader: BufferedReader, writer: PrintWriter) {
-        val request = SocksRequest(reader)
+        logger.debug { "Connection to client has been closed." }
     }
 }
