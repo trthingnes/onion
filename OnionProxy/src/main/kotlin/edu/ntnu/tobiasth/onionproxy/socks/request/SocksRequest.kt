@@ -18,7 +18,7 @@ class SocksRequest(input: InputStream): Request {
 
         // Make sure the SOCKS version given is correct.
         if (input.read().compareTo(Config.SOCKS_VERSION) != 0) {
-            throw IllegalArgumentException("Invalid SOCKS version.")
+            throw IllegalArgumentException("Invalid SOCKS version")
         }
 
         try {
@@ -27,7 +27,7 @@ class SocksRequest(input: InputStream): Request {
             addressType = SocksAddressType.of(input.read())
         }
         catch(e: Exception) {
-            throw IllegalArgumentException("Unknown command and address type.")
+            throw IllegalArgumentException("Unknown command and address type")
         }
 
         logger.debug { "Request has command $command and address type $addressType." }

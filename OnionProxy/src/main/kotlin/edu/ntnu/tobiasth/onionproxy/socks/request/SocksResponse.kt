@@ -18,8 +18,8 @@ class SocksResponse(val reply: SocksReply, val port: Int): Response {
             0x00, // Reserved byte
             SocksAddressType.IPV4.code, // Address type
             127, 0, 0, 1, // Address
-            port shr 8,
-            port and 0xFF
+            port shr 8, // Port byte 1
+            port and 0xFF // Port byte 2
         )
     }
 }

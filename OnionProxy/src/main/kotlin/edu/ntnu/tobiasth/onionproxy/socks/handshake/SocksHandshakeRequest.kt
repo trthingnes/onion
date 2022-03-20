@@ -18,7 +18,7 @@ class SocksHandshakeRequest(input: InputStream): Request {
     init {
         // Make sure the SOCKS version given is correct.
         if (input.read().compareTo(Config.SOCKS_VERSION) != 0) {
-            throw IllegalArgumentException("Invalid SOCKS version.")
+            throw IllegalArgumentException("Invalid SOCKS version")
         }
 
         // Find the number of methods in the request.

@@ -1,7 +1,7 @@
 package edu.ntnu.tobiasth.onionproxy
 
+import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
-import java.io.*
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
@@ -29,6 +29,7 @@ class OnionProxy {
                 }
                 finally {
                     socket.close()
+                    logger.debug { "Connection to client has been closed." }
                 }
             }
         }
@@ -37,15 +38,10 @@ class OnionProxy {
     private fun handleClient(socket: Socket) {
         logger.debug { "Got a connection from ${socket.inetAddress}:${socket.port}." }
 
-        val input = DataInputStream(socket.getInputStream())
-        val output = BufferedOutputStream(socket.getOutputStream())
+        val input = SocketUtil.getInput(socket)
+        val output = SocketUtil.getOutput(socket)
 
         socks.performHandshake(input, output)
-
-        while(!socket.isClosed) {
-            socks.handleCommand(input, output)
-        }
-
-        logger.debug { "Connection to client has been closed." }
+        socks.handleCommand(input, output)
     }
 }
