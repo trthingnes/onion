@@ -1,17 +1,16 @@
-package edu.ntnu.tobiasth.onionproxy
+package edu.ntnu.tobiasth.onionproxy.socks
 
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
-import java.net.Socket
 
 interface SocksProtocol {
     /**
-     * Performs a SOCKS opening handshake with the InputStream and Writer provided.
+     * Handles a SOCKS opening handshake with the streams provided.
      */
-    fun performHandshake(input: DataInputStream, output: BufferedOutputStream)
+    fun handleHandshake(input: DataInputStream, output: BufferedOutputStream)
 
     /**
-     * Handles a SOCKS command with the InputStream and Writer provided.
+     * Handles a SOCKS command with the streams provided.
      * Should only be used after a handshake to have taken place.
      */
     fun handleCommand(input: DataInputStream, output: BufferedOutputStream)

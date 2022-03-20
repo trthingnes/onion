@@ -1,5 +1,6 @@
-package edu.ntnu.tobiasth.onionproxy
+package edu.ntnu.tobiasth.onionproxy.socks
 
+import edu.ntnu.tobiasth.onionproxy.Config
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksRequest
 import edu.ntnu.tobiasth.onionproxy.socks.handshake.SocksHandshakeMethod
 import edu.ntnu.tobiasth.onionproxy.socks.handshake.SocksHandshakeRequest
@@ -18,13 +19,12 @@ import kotlin.concurrent.thread
 class Socks5: SocksProtocol {
     private val logger = KotlinLogging.logger {}
 
-    override fun performHandshake(input: DataInputStream, output: BufferedOutputStream) {
+    override fun handleHandshake(input: DataInputStream, output: BufferedOutputStream) {
         logger.debug { "Reading handshake request from socket." }
-
         val request = SocksHandshakeRequest(input)
+
         val method = SocksHandshakeMethod.NO_AUTHENTICATION_REQUIRED
         logger.debug { "$method is the server method" }
-
         if (method !in request.methods) {
             throw IllegalArgumentException("Method $method is not in client handshake")
         }
@@ -38,21 +38,20 @@ class Socks5: SocksProtocol {
     override fun handleCommand(input: DataInputStream, output: BufferedOutputStream) {
         val request = SocksRequest(input)
 
-        logger.debug { "Performing command ${request.command}." }
+        logger.info { "Performing command ${request.command}." }
         when (request.command) {
             SocksCommand.CONNECT -> {
                 logger.debug { "Creating socket to ${request.destAddress}:${request.destPort}." }
                 val remoteSocket = Socket(request.destAddress, request.destPort)
                 logger.debug { "Socket ${if (remoteSocket.isConnected) "connected." else "not connected."}" }
-                val remoteInput = SocketUtil.getInput(remoteSocket)
-                val remoteOutput = SocketUtil.getOutput(remoteSocket)
 
                 val response = SocksResponse(SocksReply.SUCCEEDED, Config.SOCKS_PORT)
+                logger.debug { "Sending response to client." }
                 response.toByteList().forEach { output.write(it) }
                 output.flush()
 
-                logger.debug { "Starting data exchange." }
-                exchangeData(input, output, remoteInput, remoteOutput)
+                logger.info { "Starting data exchange." }
+                exchangeData(input, output, SocketUtil.getInput(remoteSocket), SocketUtil.getOutput(remoteSocket))
             }
 
             // TODO: SocksCommand.BIND {}

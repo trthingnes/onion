@@ -1,7 +1,6 @@
 package edu.ntnu.tobiasth.onionproxy.socks.handshake
 
 import edu.ntnu.tobiasth.onionproxy.Config
-import edu.ntnu.tobiasth.onionproxy.Request
 import mu.KotlinLogging
 import java.io.InputStream
 
@@ -10,7 +9,7 @@ import java.io.InputStream
  * An initial SOCKS handshake request.
  * Expected data structure: [<Version - 1B> <Count - 1B - 1-255> <Methods - Count*1B>].
  */
-class SocksHandshakeRequest(input: InputStream): Request {
+class SocksHandshakeRequest(input: InputStream) {
     private val logger = KotlinLogging.logger {}
 
     var methods: ArrayList<SocksHandshakeMethod>

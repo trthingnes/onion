@@ -1,12 +1,11 @@
 package edu.ntnu.tobiasth.onionproxy.socks.request
 
 import edu.ntnu.tobiasth.onionproxy.Config
-import edu.ntnu.tobiasth.onionproxy.Request
 import mu.KotlinLogging
 import java.io.InputStream
 import java.net.InetAddress
 
-class SocksRequest(input: InputStream): Request {
+class SocksRequest(input: InputStream) {
     private val logger = KotlinLogging.logger {}
     var command: SocksCommand
     var addressType: SocksAddressType

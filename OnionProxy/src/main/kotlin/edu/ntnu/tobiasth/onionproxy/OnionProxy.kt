@@ -1,12 +1,13 @@
 package edu.ntnu.tobiasth.onionproxy
 
+import edu.ntnu.tobiasth.onionproxy.socks.Socks5
 import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 
-// ? Test with curl: curl -x socks5://127.0.0.1:1080 http://datakom.no
+// ? Test with curl? Use: curl -x socks5://127.0.0.1[:port] http://datakom.no
 class OnionProxy {
     private val logger = KotlinLogging.logger {}
     private val socks = when (Config.SOCKS_VERSION) {
@@ -22,6 +23,7 @@ class OnionProxy {
             val socket = server.accept()
             thread {
                 try {
+                    logger.info { "New connection from client at ${socket.inetAddress}:${socket.port}." }
                     handleClient(socket)
                 }
                 catch (e: Exception) {
@@ -29,19 +31,17 @@ class OnionProxy {
                 }
                 finally {
                     socket.close()
-                    logger.debug { "Connection to client has been closed." }
+                    logger.info { "Connection to client has been closed." }
                 }
             }
         }
     }
 
     private fun handleClient(socket: Socket) {
-        logger.debug { "Got a connection from ${socket.inetAddress}:${socket.port}." }
-
         val input = SocketUtil.getInput(socket)
         val output = SocketUtil.getOutput(socket)
 
-        socks.performHandshake(input, output)
+        socks.handleHandshake(input, output)
         socks.handleCommand(input, output)
     }
 }
