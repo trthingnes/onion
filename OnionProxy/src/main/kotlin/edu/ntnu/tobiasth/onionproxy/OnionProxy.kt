@@ -42,8 +42,9 @@ class OnionProxy {
     }
 
     private fun handleClient(socket: Socket) {
-        val input = SocketUtil.getDirectInput(socket)
-        val output = SocketUtil.getDirectOutput(socket)
+        val streams = SocketUtil.getSocketStreams(socket)
+        val input = streams.first
+        val output = streams.second
 
         socks.handleHandshake(input, output)
         socks.handleCommand(input, output)

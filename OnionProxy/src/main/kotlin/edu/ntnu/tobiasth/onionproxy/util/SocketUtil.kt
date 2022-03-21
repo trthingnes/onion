@@ -1,6 +1,10 @@
 package edu.ntnu.tobiasth.onionproxy.util
 
 import edu.ntnu.tobiasth.onionproxy.Config
+import edu.ntnu.tobiasth.onionproxy.onion.OnionCircuit
+import edu.ntnu.tobiasth.onionproxy.onion.OnionInputStream
+import edu.ntnu.tobiasth.onionproxy.onion.OnionOutputStream
+import edu.ntnu.tobiasth.onionproxy.onion.OnionRouterDirectory
 import mu.KotlinLogging
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
@@ -13,23 +17,28 @@ class SocketUtil {
     companion object {
         private val logger = KotlinLogging.logger {}
 
-        fun getDirectInput(socket: Socket): DataInputStream = DataInputStream(socket.getInputStream())
-        fun getDirectOutput(socket: Socket): BufferedOutputStream = BufferedOutputStream(socket.getOutputStream())
-        //fun getOnionInput(socket: Socket, circuit: OnionCircuit): OnionInputStream = OnionInputStream(socket.getInputStream(), circuit: OnionCircuit)
-        //fun getOnionOutput(socket: Socket, circuit: OnionCircuit): OnionOutputStream = OnionOutputStream(socket.getOutputStream(), circuit: OnionCircuit)
-
         fun getSocketStreams(address: InetAddress, port: Int): Pair<InputStream, OutputStream> {
             logger.debug { "Creating socket to $address:$port." }
             val socket = Socket(address, port)
             logger.debug { "Socket ${if (socket.isConnected) "connected." else "not connected."}" }
 
+            return getSocketStreams(socket)
+        }
+
+        fun getSocketStreams(socket: Socket): Pair<InputStream, OutputStream> {
             logger.debug { "Using ${if (Config.ONION_ENABLED) "onion" else "direct"} streams." }
-            if (Config.ONION_ENABLED) {
-                TODO("Return onion streams")
-            }
-            else {
-                return Pair(getDirectInput(socket), getDirectOutput(socket))
+            return if (Config.ONION_ENABLED) {
+                // TODO: Get router directory from somewhere.
+                val circuit = OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, OnionRouterDirectory())
+                Pair(getOnionInput(socket, circuit), getOnionOutput(socket, circuit))
+            } else {
+                Pair(getDirectInput(socket), getDirectOutput(socket))
             }
         }
+
+        private fun getDirectInput(socket: Socket) = DataInputStream(socket.getInputStream())
+        private fun getDirectOutput(socket: Socket) = BufferedOutputStream(socket.getOutputStream())
+        private fun getOnionInput(socket: Socket, circuit: OnionCircuit) = OnionInputStream(socket.getInputStream(), circuit)
+        private fun getOnionOutput(socket: Socket, circuit: OnionCircuit) = OnionOutputStream(socket.getOutputStream(), circuit)
     }
 }
