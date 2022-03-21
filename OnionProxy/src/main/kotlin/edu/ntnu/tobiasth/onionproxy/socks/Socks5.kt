@@ -16,6 +16,9 @@ import kotlin.concurrent.thread
 class Socks5: SocksProtocol {
     private val logger = KotlinLogging.logger {}
 
+    /**
+     * Handles a SOCKS handshake initiated by the client.
+     */
     override fun handleHandshake(input: InputStream, output: OutputStream) {
         logger.debug { "Reading handshake request from socket." }
         val request = SocksHandshakeRequest(input)
@@ -32,6 +35,9 @@ class Socks5: SocksProtocol {
         output.flush()
     }
 
+    /**
+     * Handles a SOCKS command given by the client.
+     */
     override fun handleCommand(input: InputStream, output: OutputStream) {
         val request = SocksRequest(input)
 
@@ -59,6 +65,9 @@ class Socks5: SocksProtocol {
         }
     }
 
+    /**
+     * Forward all data between the client and the remote and their corresponding streams.
+     */
     override fun exchangeData(clientIn: InputStream, clientOut: OutputStream, remoteIn: InputStream, remoteOut: OutputStream) {
         val thread = thread { // Start separate thread, so we have one for each direction of flow.
             forwardData(clientIn, "client", remoteOut, "server")
@@ -69,6 +78,9 @@ class Socks5: SocksProtocol {
         thread.join()
     }
 
+    /**
+     * Forwards all data from given input stream to given output stream.
+     */
     private fun forwardData(from: InputStream, fromName: String, to: OutputStream, toName: String) {
         val buffer = ByteArray(Config.BUFFER_SIZE)
 
@@ -89,6 +101,9 @@ class Socks5: SocksProtocol {
         }
     }
 
+    /**
+     * Writes data to the output stream and flushes.
+     */
     private fun write(target: OutputStream, data: List<Int>) {
         data.forEach { target.write(it) }
         target.flush()
