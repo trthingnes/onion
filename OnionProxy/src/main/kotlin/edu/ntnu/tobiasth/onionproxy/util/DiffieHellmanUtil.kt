@@ -15,6 +15,16 @@ class DiffieHellmanUtil {
             return keyAgreement.generateSecret()
         }
 
+        fun getDHParameterSpec(): DHParameterSpec {
+            val key = getKeyPair().private as DHPrivateKey
+            return key.params
+        }
+
+        fun getKeyPair(): KeyPair {
+            val keyPairGenerator = KeyPairGenerator.getInstance("DH")
+            return keyPairGenerator.genKeyPair()
+        }
+
         fun getPublicKeyFromEncoded(bytes: ByteArray): DHPublicKey {
             val keyFactory = KeyFactory.getInstance("DH")
             return keyFactory.generatePublic(X509EncodedKeySpec(bytes)) as DHPublicKey
@@ -23,11 +33,6 @@ class DiffieHellmanUtil {
         fun getPrivateKeyFromEncoded(bytes: ByteArray): DHPrivateKey {
             val keyFactory = KeyFactory.getInstance("DH")
             return keyFactory.generatePrivate(X509EncodedKeySpec(bytes)) as DHPrivateKey
-        }
-
-        fun getKeyPair(): KeyPair {
-            val keyPairGenerator = KeyPairGenerator.getInstance("DH")
-            return keyPairGenerator.genKeyPair()
         }
 
         private fun getKeyAgreement(key: PrivateKey, spec: DHParameterSpec): KeyAgreement {
