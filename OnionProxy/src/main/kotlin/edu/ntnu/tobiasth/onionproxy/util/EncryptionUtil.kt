@@ -8,17 +8,15 @@ class EncryptionUtil {
         const val KEYALG = "AES"
         const val CIPHER = "AES/ECB/PKCS5Padding"
 
-        fun getKeySpec(sharedSecret: ByteArray): SecretKeySpec {
-            return SecretKeySpec(sharedSecret, KEYALG)
-        }
-
-        fun getEncryptCipher(key: SecretKeySpec): Cipher {
+        fun getEncryptCipher(sharedSecret: ByteArray): Cipher {
+            val key = SecretKeySpec(sharedSecret, KEYALG)
             val cipher = Cipher.getInstance(CIPHER)
             cipher.init(Cipher.ENCRYPT_MODE, key)
             return cipher
         }
 
-        fun getDecryptCipher(key: SecretKeySpec): Cipher {
+        fun getDecryptCipher(sharedSecret: ByteArray): Cipher {
+            val key = SecretKeySpec(sharedSecret, KEYALG)
             val cipher = Cipher.getInstance(CIPHER)
             cipher.init(Cipher.DECRYPT_MODE, key)
             return cipher
