@@ -11,13 +11,12 @@ import edu.ntnu.tobiasth.onionproxy.socks.request.SocksResponse
 import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
 import java.io.*
-import java.net.Socket
 import kotlin.concurrent.thread
 
 class Socks5: SocksProtocol {
     private val logger = KotlinLogging.logger {}
 
-    override fun handleHandshake(input: DataInputStream, output: BufferedOutputStream) {
+    override fun handleHandshake(input: InputStream, output: OutputStream) {
         logger.debug { "Reading handshake request from socket." }
         val request = SocksHandshakeRequest(input)
 
@@ -33,23 +32,20 @@ class Socks5: SocksProtocol {
         output.flush()
     }
 
-    override fun handleCommand(input: DataInputStream, output: BufferedOutputStream) {
+    override fun handleCommand(input: InputStream, output: OutputStream) {
         val request = SocksRequest(input)
 
         logger.info { "Performing command ${request.command}." }
         when (request.command) {
             SocksCommand.CONNECT -> {
-                logger.debug { "Creating socket to ${request.destAddress}:${request.destPort}." }
-                val remoteSocket = Socket(request.destAddress, request.destPort)
-                logger.debug { "Socket ${if (remoteSocket.isConnected) "connected." else "not connected."}" }
+                val remoteStreams = SocketUtil.getSocketStreams(request.destAddress, request.destPort)
 
                 val response = SocksResponse(SocksReply.SUCCEEDED, Config.SOCKS_PORT)
                 logger.debug { "Sending response to client." }
-                response.toByteList().forEach { output.write(it) }
-                output.flush()
+                write(output, response.toByteList())
 
                 logger.info { "Starting data exchange." }
-                exchangeData(input, output, SocketUtil.getDirectInput(remoteSocket), SocketUtil.getDirectOutput(remoteSocket))
+                exchangeData(input, output, remoteStreams.first, remoteStreams.second)
             }
 
             // TODO: SocksCommand.BIND {}
@@ -57,8 +53,7 @@ class Socks5: SocksProtocol {
 
             else -> {
                 val response = SocksResponse(SocksReply.COMMAND_NOT_SUPPORTED, Config.SOCKS_PORT)
-                response.toByteList().forEach { output.write(it) }
-                output.flush()
+                write(output, response.toByteList())
                 throw IllegalStateException("Unsupported command in SOCKS request")
             }
         }
@@ -66,43 +61,36 @@ class Socks5: SocksProtocol {
 
     override fun exchangeData(clientIn: InputStream, clientOut: OutputStream, remoteIn: InputStream, remoteOut: OutputStream) {
         val thread = thread { // Start separate thread, so we have one for each direction of flow.
-            val buffer = ByteArray(4096)
-
-            try {
-                var byteCount = clientIn.read(buffer)
-                while(byteCount != -1) {
-                    logger.debug { "Read $byteCount bytes from client." }
-                    remoteOut.write(buffer, 0, byteCount)
-                    logger.debug { "Wrote $byteCount to remote." }
-                    remoteOut.flush()
-                    byteCount = clientIn.read(buffer)
-                }
-            }
-            catch(e: IOException) {
-                logger.debug { "Connection from client to server closed." }
-                clientIn.close()
-                remoteOut.close()
-            }
+            forwardData(clientIn, "client", remoteOut, "server")
         }
 
-        val buffer = ByteArray(4096)
+        forwardData(remoteIn, "remote", clientOut, "client")
+
+        thread.join()
+    }
+
+    private fun forwardData(from: InputStream, fromName: String, to: OutputStream, toName: String) {
+        val buffer = ByteArray(Config.BUFFER_SIZE)
 
         try {
-            var byteCount = remoteIn.read(buffer)
+            var byteCount = from.read(buffer)
             while(byteCount != -1) {
-                logger.debug { "Read $byteCount bytes from remote." }
-                clientOut.write(buffer, 0, byteCount)
-                logger.debug { "Wrote $byteCount to client." }
-                clientOut.flush()
-                byteCount = remoteIn.read(buffer)
+                logger.debug { "Read $byteCount bytes from $fromName." }
+                to.write(buffer, 0, byteCount)
+                logger.debug { "Wrote $byteCount to $toName." }
+                to.flush()
+                byteCount = from.read(buffer)
             }
         }
         catch(e: IOException) {
-            logger.debug { "Connection from server to client closed." }
-            remoteIn.close()
-            clientOut.close()
+            logger.debug { "Connection from $fromName to $toName closed." }
+            from.close()
+            to.close()
         }
+    }
 
-        thread.join()
+    private fun write(target: OutputStream, data: List<Int>) {
+        data.forEach { target.write(it) }
+        target.flush()
     }
 }
