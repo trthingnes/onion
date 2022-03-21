@@ -23,8 +23,9 @@ class SocketUtil {
 
         fun getSocketStreams(socket: Socket): Pair<InputStream, OutputStream> {
             logger.debug { "Using ${if (Config.ONION_ENABLED) "onion" else "direct"} streams." }
+
             return if (Config.ONION_ENABLED) {
-                val circuit = OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, Config.ROUTER_DIRECTORY)
+                val circuit = OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, Config.ONION_ROUTER_DIRECTORY)
                 Pair(getOnionInput(socket, circuit), getOnionOutput(socket, circuit))
             } else {
                 Pair(getDirectInput(socket), getDirectOutput(socket))

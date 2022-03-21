@@ -3,18 +3,18 @@ package edu.ntnu.tobiasth.onionproxy.util
 import edu.ntnu.tobiasth.onionproxy.onion.OnionCircuit
 import edu.ntnu.tobiasth.onionproxy.onion.OnionRouterDirectory
 import edu.ntnu.tobiasth.onionproxy.onion.OnionRouterInfo
+import java.util.*
+import kotlin.NoSuchElementException
 
 class OnionUtil {
     companion object {
-        private var id = 0
-
         fun createCircuit(size: Int, directory: OnionRouterDirectory): OnionCircuit {
             val routers = arrayListOf<OnionRouterInfo>()
             routers.addAll(directory.routers)
 
             val firstRouter = routers.random()
             routers.remove(firstRouter)
-            val circuit = OnionCircuit(id++, firstRouter)
+            val circuit = OnionCircuit(UUID.randomUUID(), firstRouter)
 
             try {
                 repeat(size - 1) {

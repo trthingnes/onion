@@ -14,8 +14,8 @@ class Config {
         const val ONION_CIRCUIT_SIZE: Int = 1
         const val BUFFER_SIZE: Int = 4096
 
-        val PROXY_KEY: KeyPair = DiffieHellmanUtil.getKeyPair()
-        val ROUTER_DIRECTORY: OnionRouterDirectory = OnionRouterDirectory(listOf(
+        val ONION_PROXY_KEY: KeyPair = DiffieHellmanUtil.getKeyPair()
+        val ONION_ROUTER_DIRECTORY: OnionRouterDirectory = OnionRouterDirectory(listOf(
             OnionRouterInfo(InetAddress.getLoopbackAddress(), 1111),
             OnionRouterInfo(InetAddress.getLoopbackAddress(), 2222),
             OnionRouterInfo(InetAddress.getLoopbackAddress(), 3333),

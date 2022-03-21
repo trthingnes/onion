@@ -1,7 +1,9 @@
 package edu.ntnu.tobiasth.onionproxy.onion.cell
 
+import java.util.*
+
 class OnionRelayCell(
-    circuitId: Int,
+    circuitId: UUID,
     command: OnionControlCommand,
     data: ByteArray,
     val streamId: Int,

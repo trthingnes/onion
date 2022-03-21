@@ -6,9 +6,10 @@ import edu.ntnu.tobiasth.onionproxy.util.DiffieHellmanUtil
 import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.*
 import javax.crypto.interfaces.DHPrivateKey
 
-class OnionCircuit(val id: Int, router: OnionRouterInfo) {
+class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
     private val routers = arrayListOf<OnionRouterInfo>()
     private val streams: Pair<InputStream, OutputStream>
 
@@ -24,7 +25,7 @@ class OnionCircuit(val id: Int, router: OnionRouterInfo) {
      * Extend the circuit to the router with the given info.
      */
     fun extend(router: OnionRouterInfo) {
-        val request = OnionControlCell(id, OnionControlCommand.CREATE, Config.PROXY_KEY.public.encoded)
+        val request = OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
         send(pack(request))
 
         val response = unpack(receive())
@@ -101,8 +102,8 @@ class OnionCircuit(val id: Int, router: OnionRouterInfo) {
         // ! Key exchange params are based on the client key.
         // ! The server will also have to use the params from the proxy public key.
         val routerKey = DiffieHellmanUtil.getPublicKeyFromEncoded(cell.data)
-        val spec = (Config.PROXY_KEY.private as DHPrivateKey).params
+        val spec = (Config.ONION_PROXY_KEY.private as DHPrivateKey).params
 
-        return DiffieHellmanUtil.getSharedSecret(Config.PROXY_KEY.private, routerKey, spec)
+        return DiffieHellmanUtil.getSharedSecret(Config.ONION_PROXY_KEY.private, routerKey, spec)
     }
 }
