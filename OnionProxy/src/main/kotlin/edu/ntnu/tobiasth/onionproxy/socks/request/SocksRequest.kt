@@ -7,10 +7,10 @@ import java.net.InetAddress
 
 class SocksRequest(input: InputStream) {
     private val logger = KotlinLogging.logger {}
-    var command: SocksCommand
-    var addressType: SocksAddressType
-    var destAddress: InetAddress
-    var destPort: Int
+    private val addressType: SocksAddressType
+    val command: SocksCommand
+    val destAddress: InetAddress
+    val destPort: Int
 
     init {
         logger.debug { "Parsing request from client." }

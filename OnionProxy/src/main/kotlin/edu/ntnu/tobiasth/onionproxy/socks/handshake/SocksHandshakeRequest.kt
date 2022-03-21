@@ -11,8 +11,7 @@ import java.io.InputStream
  */
 class SocksHandshakeRequest(input: InputStream) {
     private val logger = KotlinLogging.logger {}
-
-    var methods: ArrayList<SocksHandshakeMethod>
+    val methods: ArrayList<SocksHandshakeMethod>
 
     init {
         // Make sure the SOCKS version given is correct.
