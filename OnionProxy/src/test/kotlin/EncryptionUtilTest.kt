@@ -18,8 +18,8 @@ internal class EncryptionUtilTest {
 
         val originalData = "This is a test string :)".toByteArray()
         val encryptedData = EncryptionUtil.useCipher(aliceCipher, originalData)
-        val unencryptedData = EncryptionUtil.useCipher(bobCipher, encryptedData)
+        val decryptedData = EncryptionUtil.useCipher(bobCipher, encryptedData)
 
-        assertContentEquals(originalData, unencryptedData)
+        assertContentEquals(originalData, decryptedData)
     }
 }

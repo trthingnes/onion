@@ -2,8 +2,8 @@ package edu.ntnu.tobiasth.onionproxy.util
 
 import edu.ntnu.tobiasth.onionproxy.Config
 import edu.ntnu.tobiasth.onionproxy.onion.OnionCircuit
-import edu.ntnu.tobiasth.onionproxy.onion.OnionInputStream
-import edu.ntnu.tobiasth.onionproxy.onion.OnionOutputStream
+import edu.ntnu.tobiasth.onionproxy.onion.stream.OnionInputStream
+import edu.ntnu.tobiasth.onionproxy.onion.stream.OnionOutputStream
 import edu.ntnu.tobiasth.onionproxy.onion.OnionRouterDirectory
 import mu.KotlinLogging
 import java.io.*
@@ -25,9 +25,9 @@ class SocketUtil {
         fun getSocketStreams(socket: Socket): Pair<InputStream, OutputStream> {
             logger.debug { "Using ${if (Config.ONION_ENABLED) "onion" else "direct"} streams." }
             return if (Config.ONION_ENABLED) {
-                // TODO: Get router directory from somewhere.
                 val circuit = OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, OnionRouterDirectory())
                 Pair(getOnionInput(socket, circuit), getOnionOutput(socket, circuit))
+                TODO("Get router directory from somewhere.")
             } else {
                 Pair(getDirectInput(socket), getDirectOutput(socket))
             }
