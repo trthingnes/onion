@@ -1,7 +1,5 @@
 package edu.ntnu.tobiasth.onionproxy.socks
 
-import java.io.BufferedOutputStream
-import java.io.DataInputStream
 import java.io.InputStream
 import java.io.OutputStream
 
