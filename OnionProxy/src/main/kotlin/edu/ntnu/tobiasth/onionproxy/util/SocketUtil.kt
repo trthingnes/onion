@@ -12,10 +12,6 @@ class SocketUtil {
     companion object {
         private val logger = KotlinLogging.logger {}
 
-        fun getSocketIO(address: InetAddress, port: Int): Pair<BufferedReader, PrintWriter> {
-            return getSocketIO(getSocket(address, port))
-        }
-
         fun getSocketIO(socket: Socket): Pair<BufferedReader, PrintWriter> {
             return Pair(BufferedReader(InputStreamReader(getDirectInput(socket))), PrintWriter(getDirectOutput(socket)))
         }
@@ -26,6 +22,10 @@ class SocketUtil {
 
         fun getSocketStreams(socket: Socket): Pair<InputStream, OutputStream> {
             return Pair(getDirectInput(socket), getDirectOutput(socket))
+        }
+
+        fun getOnionStreams(circuit: OnionCircuit): Pair<InputStream, OutputStream> {
+            return Pair(getOnionInput(circuit), getOnionOutput(circuit))
         }
 
         fun getSocket(address: InetAddress, port: Int): Socket {
