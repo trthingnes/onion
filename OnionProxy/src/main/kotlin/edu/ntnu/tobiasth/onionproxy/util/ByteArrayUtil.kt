@@ -2,14 +2,14 @@ package edu.ntnu.tobiasth.onionproxy.util
 
 class ByteArrayUtil {
     companion object {
-        fun addByteToFront(array: ByteArray, byte: Byte): ByteArray {
+        fun addByteToFront(bytes: ByteArray, byte: Byte): ByteArray {
             val new = mutableListOf(byte)
-            new.addAll(array.toList())
+            new.addAll(bytes.toList())
             return new.toByteArray()
         }
 
-        fun removeByteFromFront(array: ByteArray): ByteArray {
-            val new = array.toMutableList()
+        fun removeByteFromFront(bytes: ByteArray): ByteArray {
+            val new = bytes.toMutableList()
             new.removeFirst()
             return new.toByteArray()
         }
