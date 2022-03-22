@@ -1,5 +1,8 @@
 package edu.ntnu.tobiasth.onionproxy.socks.request
 
+/**
+ * Commands a SOCKS client can give to the server.
+ */
 enum class SocksCommand(val code: Int) {
     CONNECT(0x01),
     BIND(0x02),

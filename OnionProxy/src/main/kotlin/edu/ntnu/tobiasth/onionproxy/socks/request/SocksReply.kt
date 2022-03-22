@@ -1,5 +1,8 @@
 package edu.ntnu.tobiasth.onionproxy.socks.request
 
+/**
+ * Responses a SOCKS server can give to the client.
+ */
 enum class SocksReply(val code: Int) {
     SUCCEEDED(0x00),
     SOCKS_SERVER_FAILURE(0x01),

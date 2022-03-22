@@ -15,6 +15,9 @@ class SocksHandshakeResponse(private val method: SocksHandshakeMethod, request: 
         logger.debug { "Creating the response (Version: ${Config.SOCKS_VERSION}, Method: [$methodIndex] $method)." }
     }
 
+    /**
+     * Converts the response into a list of bytes to use with streams.
+     */
     fun toByteList(): List<Int> {
         return listOf(Config.SOCKS_VERSION, methodIndex)
     }

@@ -13,12 +13,12 @@ import mu.KotlinLogging
 import java.io.*
 import kotlin.concurrent.thread
 
+/**
+ * Implementation of SOCKS5 protocol.
+ */
 class Socks5: SocksProtocol {
     private val logger = KotlinLogging.logger {}
 
-    /**
-     * Handles a SOCKS handshake initiated by the client.
-     */
     override fun handleHandshake(input: InputStream, output: OutputStream) {
         logger.debug { "Reading handshake request from socket." }
         val request = SocksHandshakeRequest(input)
@@ -35,9 +35,6 @@ class Socks5: SocksProtocol {
         output.flush()
     }
 
-    /**
-     * Handles a SOCKS command given by the client.
-     */
     override fun handleCommand(input: InputStream, output: OutputStream) {
         val request = SocksRequest(input)
 
@@ -65,9 +62,6 @@ class Socks5: SocksProtocol {
         }
     }
 
-    /**
-     * Forward all data between the client and the remote and their corresponding streams.
-     */
     override fun exchangeData(clientIn: InputStream, clientOut: OutputStream, remoteIn: InputStream, remoteOut: OutputStream) {
         val thread = thread { // Start separate thread, so we have one for each direction of flow.
             forwardData(clientIn, "client", remoteOut, "server")

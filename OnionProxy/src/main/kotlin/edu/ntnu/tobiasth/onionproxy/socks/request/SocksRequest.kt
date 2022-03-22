@@ -5,6 +5,10 @@ import mu.KotlinLogging
 import java.io.InputStream
 import java.net.InetAddress
 
+/**
+ * A SOCKS command request.
+ * This is used after initial handshake.
+ */
 class SocksRequest(input: InputStream) {
     private val logger = KotlinLogging.logger {}
     private val addressType: SocksAddressType

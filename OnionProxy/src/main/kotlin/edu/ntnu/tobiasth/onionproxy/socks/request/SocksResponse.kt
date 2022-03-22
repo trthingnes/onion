@@ -3,6 +3,10 @@ package edu.ntnu.tobiasth.onionproxy.socks.request
 import edu.ntnu.tobiasth.onionproxy.Config
 import mu.KotlinLogging
 
+/**
+ * A SOCKS command response.
+ * This is used after initial handshake.
+ */
 class SocksResponse(val reply: SocksReply, val port: Int) {
     private val logger = KotlinLogging.logger {}
 
@@ -10,6 +14,9 @@ class SocksResponse(val reply: SocksReply, val port: Int) {
         logger.debug { "Creating the response (Version: ${Config.SOCKS_VERSION}, Reply: $reply, Port: $port)." }
     }
 
+    /**
+     * Converts the response into a list of bytes to use with streams.
+     */
     fun toByteList(): List<Int> {
         return listOf(
             Config.SOCKS_VERSION, // Version

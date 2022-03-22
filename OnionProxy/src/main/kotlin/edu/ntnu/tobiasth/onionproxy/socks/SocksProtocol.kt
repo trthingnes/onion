@@ -3,6 +3,9 @@ package edu.ntnu.tobiasth.onionproxy.socks
 import java.io.InputStream
 import java.io.OutputStream
 
+/**
+ * Interface describing the requirements for a SOCKS implementation.
+ */
 interface SocksProtocol {
     /**
      * Handles a SOCKS opening handshake with the streams provided.
