@@ -2,76 +2,177 @@ package edu.ntnu.tobiasth.onionproxy.onion
 
 import edu.ntnu.tobiasth.onionproxy.Config
 import edu.ntnu.tobiasth.onionproxy.onion.cell.*
-import edu.ntnu.tobiasth.onionproxy.util.DiffieHellmanUtil
-import edu.ntnu.tobiasth.onionproxy.util.OnionUtil
-import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
-import java.io.InputStream
-import java.io.OutputStream
+import edu.ntnu.tobiasth.onionproxy.util.*
+import mu.KotlinLogging
+import java.io.BufferedReader
+import java.io.PrintWriter
+import java.net.Socket
 import java.util.*
 import javax.crypto.interfaces.DHPublicKey
 
 class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
+    private val logger = KotlinLogging.logger {}
     private val routers = arrayListOf<OnionRouterInfo>()
-    private val streams: Pair<InputStream, OutputStream>
+    private val socket: Socket
+    private val io: Pair<BufferedReader, PrintWriter>
 
     init {
         // Open a socket connection to first onion router.
-        streams = SocketUtil.getSocketStreams(router.address, router.port)
+        logger.debug { "Opening socket to first router in circuit." }
+        socket = SocketUtil.getSocket(router.address, router.port)
+        io = SocketUtil.getSocketIO(socket)
 
-        // Extend the network to the first router.
-        extend(router)
+        create(router)
+    }
+
+    /**
+     * Create a connection to the first router.
+     */
+    private fun create(router: OnionRouterInfo) {
+        val request = OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
+        val response = exchange(request)
+
+        if(response !is OnionControlCell) {
+            throw IllegalStateException("Unexpected cell type")
+        }
+
+        if(response.command != OnionControlCommand.CREATE) {
+            throw IllegalStateException("Expected cell command CREATE, got ${response.command}")
+        }
+
+        logger.debug { "Extracting shared secret." }
+        router.sharedSecret = extractSharedSecret(response)
+        routers.add(router)
     }
 
     /**
      * Extend the circuit to the router with the given info.
      */
     fun extend(router: OnionRouterInfo) {
-        val request = OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
-        send(addLayers(request))
-        val response = removeLayers(receive()) as OnionControlCell
+        if(routers.isEmpty()) {
+            throw IllegalStateException("Cannot extend uninitialized circuit")
+        }
 
-        router.sharedSecret = extractSharedSecret(response)
+        val routerId = Config.ONION_ROUTER_DIRECTORY.getId(router).toByte()
+        val data = SerializeUtil.serialize(
+            OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
+        )
+        val request = OnionRelayCell(
+            id,
+            OnionRelayCommand.EXTEND,
+            ByteArrayUtil.addByteToFront(data, routerId)
+        )
+
+        // Verify relay cell layer.
+        val extendResponse = exchange(request)
+        if(extendResponse !is OnionRelayCell) {
+            throw IllegalStateException("Unexpected cell type ${extendResponse.javaClass}")
+        }
+        if(extendResponse.relayCommand != OnionRelayCommand.EXTEND) {
+            throw IllegalStateException("Expected command EXTEND, but got ${extendResponse.command}")
+        }
+
+        // Verify control cell.
+        val createResponse = SerializeUtil.deserialize(extendResponse.data)
+        if(createResponse !is OnionControlCell) {
+            throw IllegalStateException("Unexpected cell type ${extendResponse.javaClass}")
+        }
+        if(createResponse.command != OnionControlCommand.CREATE) {
+            throw IllegalStateException("Expected command CREATE, but got ${extendResponse.command}")
+        }
+
+        router.sharedSecret = extractSharedSecret(createResponse)
         routers.add(router)
+    }
+
+    /**
+     * Truncate the circuit and close the connection to the last router.
+     */
+    fun truncate() {
+        val request = OnionControlCell(id, OnionControlCommand.DESTROY, ByteArray(0))
+        send(request)
+        val response = receive() as OnionControlCell
+
+        if(response.command == OnionControlCommand.DESTROY) {
+            routers.removeLast()
+
+            if(routers.isEmpty()) {
+                // If we removed the last router, we are the ones who have to close the socket.
+                socket.close()
+            }
+        }
+        else {
+            throw IllegalStateException("Unexpected response from router during truncate")
+        }
     }
 
     /**
      * Destroys the connection to all routers in the circuit.
      */
     fun destroy() {
-        TODO()
+        repeat(routers.size) { truncate() }
     }
 
     /**
-     * Sends a cell to the first router in the circuit.
+     * Adds encryption layers and sends a cell to the first router in the circuit.
      */
     fun send(cell: OnionCell) {
-        val data = OnionUtil.encryptCell(cell, routers.first().sharedSecret!!)
-        streams.second.write(data)
-        streams.second.flush()
+        val data = if (routers.isNotEmpty()) {
+            OnionUtil.encryptCell(addRelayLayers(cell), routers.first().sharedSecret!!)
+        } else {
+            SerializeUtil.serialize(cell)
+        }
+
+        io.second.println(Base64Util.encode(data))
+        io.second.flush()
     }
 
     /**
-     * Blocks until a cell is received from the first router in the circuit.
+     * Blocks until a cell is received from the first router in the circuit and removes encryption layers.
      */
     fun receive(): OnionCell {
-        // TODO: Not sure if this will work.
-        val data = streams.first.readBytes()
-        return OnionUtil.decryptCell(data, routers.first().sharedSecret!!)
+        val data = Base64.getDecoder().decode(io.first.readLine())
+
+        val cell = if (routers.isNotEmpty()) {
+            removeRelayLayers(OnionUtil.decryptCell(data, routers.first().sharedSecret!!))
+        } else {
+            logger.debug { "Deserializing incoming cell" }
+            SerializeUtil.deserialize(data)
+        }
+
+        return cell
+    }
+
+    /**
+     * Convenience method combining send and receive.
+     */
+    fun exchange(request: OnionCell): OnionCell {
+        logger.debug { "Sending request." }
+        send(request)
+
+        logger.debug { "Waiting for response." }
+        val response = receive()
+
+        logger.debug { "Received response." }
+        return response
     }
 
     /**
      * Packs the given cell with one relay cell for each router it's going through.
      * If no routers have been connected yet, cell will be returned untouched.
      */
-    private fun addLayers(cell: OnionCell): OnionCell {
+    private fun addRelayLayers(cell: OnionCell): OnionCell {
         var layeredCell: OnionCell = cell
 
-        for(i in routers.lastIndex..1) {
-            layeredCell = OnionRelayCell(
-                layeredCell.circuitId,
-                OnionUtil.encryptCell(layeredCell, routers[i].sharedSecret!!),
-                OnionRelayCommand.RELAY
-            )
+        if (routers.isNotEmpty()) {
+            for(i in (1..routers.lastIndex).reversed()) {
+                logger.debug { "Adding a relay layer" }
+                layeredCell = OnionRelayCell(
+                    layeredCell.circuitId,
+                    OnionRelayCommand.RELAY,
+                    OnionUtil.encryptCell(layeredCell, routers[i].sharedSecret!!)
+                )
+            }
         }
 
         return layeredCell
@@ -81,11 +182,14 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
      * Unpacks the given cell by removing one relay cell for each router it has gone through.
      * If cell is not packed, it will be returned untouched.
      */
-    private fun removeLayers(layeredCell: OnionCell): OnionCell {
+    private fun removeRelayLayers(layeredCell: OnionCell): OnionCell {
         var cell: OnionCell = layeredCell
 
-        for(i in 1..routers.lastIndex) {
-            cell = OnionUtil.decryptCell(cell.data, routers[i].sharedSecret!!)
+        if (routers.isNotEmpty()) {
+            for(i in 1..routers.lastIndex) {
+                logger.debug { "Removing a relay layer." }
+                cell = OnionUtil.decryptCell(cell.data, routers[i].sharedSecret!!)
+            }
         }
 
         return cell

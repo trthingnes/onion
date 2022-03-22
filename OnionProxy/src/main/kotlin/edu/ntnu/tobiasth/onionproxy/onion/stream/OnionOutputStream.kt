@@ -7,7 +7,7 @@ import java.io.OutputStream
 class OnionOutputStream(private val circuit: OnionCircuit) : OutputStream() {
     override fun write(b: ByteArray, off: Int, len: Int) {
         val data = ByteArray(len) { b[off + it] }
-        val cell = OnionRelayCell(circuit.id, data, OnionRelayCommand.DATA)
+        val cell = OnionRelayCell(circuit.id, OnionRelayCommand.DATA, data)
         circuit.send(cell)
     }
 

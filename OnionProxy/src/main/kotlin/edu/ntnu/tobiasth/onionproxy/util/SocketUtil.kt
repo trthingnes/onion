@@ -1,6 +1,5 @@
 package edu.ntnu.tobiasth.onionproxy.util
 
-import edu.ntnu.tobiasth.onionproxy.Config
 import edu.ntnu.tobiasth.onionproxy.onion.OnionCircuit
 import edu.ntnu.tobiasth.onionproxy.onion.stream.OnionInputStream
 import edu.ntnu.tobiasth.onionproxy.onion.stream.OnionOutputStream
@@ -13,28 +12,30 @@ class SocketUtil {
     companion object {
         private val logger = KotlinLogging.logger {}
 
-        fun getSocketStreams(address: InetAddress, port: Int): Pair<InputStream, OutputStream> {
-            logger.debug { "Creating socket to $address:$port." }
-            val socket = Socket(address, port)
-            logger.debug { "Socket ${if (socket.isConnected) "connected." else "not connected."}" }
+        fun getSocketIO(address: InetAddress, port: Int): Pair<BufferedReader, PrintWriter> {
+            return getSocketIO(getSocket(address, port))
+        }
 
-            return getSocketStreams(socket)
+        fun getSocketIO(socket: Socket): Pair<BufferedReader, PrintWriter> {
+            return Pair(BufferedReader(InputStreamReader(getDirectInput(socket))), PrintWriter(getDirectOutput(socket)))
+        }
+
+        fun getSocketStreams(address: InetAddress, port: Int): Pair<InputStream, OutputStream> {
+            return getSocketStreams(getSocket(address, port))
         }
 
         fun getSocketStreams(socket: Socket): Pair<InputStream, OutputStream> {
-            logger.debug { "Using ${if (Config.ONION_ENABLED) "onion" else "direct"} streams." }
+            return Pair(getDirectInput(socket), getDirectOutput(socket))
+        }
 
-            return if (Config.ONION_ENABLED) {
-                val circuit = OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, Config.ONION_ROUTER_DIRECTORY)
-                Pair(getOnionInput(socket, circuit), getOnionOutput(socket, circuit))
-            } else {
-                Pair(getDirectInput(socket), getDirectOutput(socket))
-            }
+        fun getSocket(address: InetAddress, port: Int): Socket {
+            logger.debug { "Creating socket to $address:$port." }
+            return Socket(address, port)
         }
 
         private fun getDirectInput(socket: Socket) = BufferedInputStream(socket.getInputStream())
         private fun getDirectOutput(socket: Socket) = BufferedOutputStream(socket.getOutputStream())
-        private fun getOnionInput(socket: Socket, circuit: OnionCircuit) = OnionInputStream(socket.getInputStream(), circuit)
-        private fun getOnionOutput(socket: Socket, circuit: OnionCircuit) = OnionOutputStream(socket.getOutputStream(), circuit)
+        private fun getOnionInput(circuit: OnionCircuit) = OnionInputStream(circuit)
+        private fun getOnionOutput(circuit: OnionCircuit) = OnionOutputStream(circuit)
     }
 }

@@ -4,6 +4,6 @@ import java.util.*
 
 class OnionRelayCell(
     circuitId: UUID,
-    data: ByteArray,
     val relayCommand: OnionRelayCommand,
+    data: ByteArray,
 ): OnionCell(circuitId, OnionControlCommand.RELAY, data)
