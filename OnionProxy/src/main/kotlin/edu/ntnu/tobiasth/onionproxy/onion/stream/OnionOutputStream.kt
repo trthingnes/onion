@@ -1,24 +1,17 @@
 package edu.ntnu.tobiasth.onionproxy.onion.stream
 
 import edu.ntnu.tobiasth.onionproxy.onion.OnionCircuit
-import edu.ntnu.tobiasth.onionproxy.onion.cell.OnionCell
-import edu.ntnu.tobiasth.onionproxy.onion.cell.OnionControlCommand
-import java.io.BufferedOutputStream
+import edu.ntnu.tobiasth.onionproxy.onion.cell.*
 import java.io.OutputStream
 
-class OnionOutputStream(output: OutputStream, private val circuit: OnionCircuit) : BufferedOutputStream(output) {
+class OnionOutputStream(private val circuit: OnionCircuit) : OutputStream() {
     override fun write(b: ByteArray, off: Int, len: Int) {
-        // Put data into cell.
-        val cell = OnionCell(circuit.id, OnionControlCommand.RELAY, b)
-
-        // Encrypt all layers onto cell.
-        // Call super.write(b, off, len)
-        // ! Make sure len is updated to match length of encrypted data.
+        val data = ByteArray(len) { b[off + it] }
+        val cell = OnionRelayCell(circuit.id, data, OnionRelayCommand.DATA)
+        circuit.send(cell)
     }
 
-    override fun close() {
-        // TODO: Possibly add support for more then one stream using the same circuit.
-        circuit.destroy()
-        super.close()
+    override fun write(b: Int) {
+        TODO("Not implemented")
     }
 }
