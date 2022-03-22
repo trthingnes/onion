@@ -12,6 +12,6 @@ class OnionOutputStream(private val circuit: OnionCircuit) : OutputStream() {
     }
 
     override fun write(b: Int) {
-        TODO("Not implemented")
+        throw NotImplementedError("Not implemented")
     }
 }
