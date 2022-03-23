@@ -153,7 +153,7 @@ class OnionRouter(port: Int) {
                     }
 
                     targetIsRouter = false
-                    TODO("How will we get the IP and port to connect to?")
+                    TODO("How will we get the IP and port to connect to? Serialize object!")
                 }
 
                 OnionRelayCommand.END -> {
