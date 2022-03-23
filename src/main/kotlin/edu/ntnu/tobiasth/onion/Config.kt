@@ -12,7 +12,7 @@ import java.security.KeyPair
 class Config {
     companion object {
         const val ONION_ENABLED: Boolean = true
-        const val ONION_CIRCUIT_SIZE: Int = 3
+        const val ONION_CIRCUIT_SIZE: Int = 5
         const val SOCKS_PORT: Int = 1080
         const val SOCKS_VERSION: Int = 5
         const val BUFFER_SIZE: Int = 262144
