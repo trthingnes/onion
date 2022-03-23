@@ -9,7 +9,7 @@ import kotlin.system.exitProcess
  * Runs onion routers on the configured ports, and a single proxy on the configured port.
  */
 fun main() {
-    if(Config.ONION_ENABLED) {
+    if (Config.ONION_ENABLED) {
         val ports = mutableListOf<Int>()
         ports.addAll(Config.ONION_ROUTER_PORTS)
         ports.forEach {

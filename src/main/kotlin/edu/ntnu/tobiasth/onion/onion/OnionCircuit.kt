@@ -129,7 +129,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
      * @param port Port of service on external server.
      */
     fun begin(address: InetAddress, port: Int) {
-        val request = OnionRelayCell(id, OnionRelayCommand.BEGIN,  SocketInfo(address, port).serialize())
+        val request = OnionRelayCell(id, OnionRelayCommand.BEGIN, SocketInfo(address, port).serialize())
         val response = exchange(request)
 
         if (response !is OnionRelayCell) {
