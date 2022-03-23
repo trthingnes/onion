@@ -1,4 +1,4 @@
-import edu.ntnu.tobiasth.onionproxy.util.EncryptionUtil
+import edu.ntnu.tobiasth.onion.util.EncryptionUtil
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.security.SecureRandom

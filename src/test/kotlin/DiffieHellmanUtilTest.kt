@@ -1,4 +1,4 @@
-import edu.ntnu.tobiasth.onionproxy.util.DiffieHellmanUtil
+import edu.ntnu.tobiasth.onion.util.DiffieHellmanUtil
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContentEquals
