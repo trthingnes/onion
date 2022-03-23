@@ -2,7 +2,10 @@ package edu.ntnu.tobiasth.onionproxy.onion
 
 import edu.ntnu.tobiasth.onionproxy.Config
 import edu.ntnu.tobiasth.onionproxy.onion.cell.*
-import edu.ntnu.tobiasth.onionproxy.util.*
+import edu.ntnu.tobiasth.onionproxy.util.ByteArrayUtil
+import edu.ntnu.tobiasth.onionproxy.util.DiffieHellmanUtil
+import edu.ntnu.tobiasth.onionproxy.util.OnionUtil
+import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.PrintWriter
@@ -11,6 +14,11 @@ import java.net.Socket
 import java.util.*
 import javax.crypto.interfaces.DHPublicKey
 
+/**
+ * Chain of routers that cells can be sent through.
+ * @see OnionRouterInfo
+ * @see OnionCell
+ */
 class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
     private val logger = KotlinLogging.logger {}
     private val routers = arrayListOf<OnionRouterInfo>()
@@ -28,6 +36,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
     /**
      * Create a connection to the first router.
+     * @param router Router to connect to.
      */
     private fun create(router: OnionRouterInfo) {
         val request = OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
@@ -48,6 +57,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
     /**
      * Extend the circuit to the router with the given info.
+     * @param router Router to extend to.
      */
     fun extend(router: OnionRouterInfo) {
         if (routers.isEmpty()) {
@@ -55,7 +65,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
         }
 
         val routerId = Config.ONION_ROUTER_DIRECTORY.getId(router).toByte()
-        val data = SerializeUtil.serialize(
+        val data = OnionUtil.serialize(
             OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
         )
         val request = OnionRelayCell(
@@ -74,7 +84,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
         }
 
         // Verify control cell.
-        val createResponse = SerializeUtil.deserialize(extendResponse.data)
+        val createResponse = OnionUtil.deserialize(extendResponse.data)
         if (createResponse !is OnionControlCell) {
             throw IllegalStateException("Unexpected cell type ${extendResponse.javaClass}")
         }
@@ -115,15 +125,16 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
     /**
      * Establishes an external connection through the circuit.
+     * @param address IP-address of the external server.
+     * @param port Port of service on external server.
      */
     fun begin(address: InetAddress, port: Int) {
         val request = OnionRelayCell(id, OnionRelayCommand.BEGIN, address.address)
-
         TODO()
     }
 
     /**
-     * Ends an external connection.
+     * Ends the running external connection.
      */
     fun end() {
         TODO()
@@ -131,21 +142,23 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
     /**
      * Adds encryption layers and sends a cell to the first router in the circuit.
+     * @param cell Cell to send to the last router.
      */
     fun send(cell: OnionCell) {
         val data = if (routers.isNotEmpty()) {
             OnionUtil.encryptCell(addRelayLayers(cell), routers.first().sharedSecret!!)
         } else {
             logger.debug { "Serializing outgoing cell." }
-            SerializeUtil.serialize(cell)
+            OnionUtil.serialize(cell)
         }
 
-        io.second.println(Base64Util.encode(data))
+        io.second.println(Base64.getEncoder().encodeToString(data))
         io.second.flush()
     }
 
     /**
-     * Blocks until a cell is received from the first router in the circuit and removes encryption layers.
+     * Blocks until a cell is received from the last router and removes encryption layers.
+     * @return Cell received from the last router.
      */
     fun receive(): OnionCell {
         val data = Base64.getDecoder().decode(io.first.readLine())
@@ -154,7 +167,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
             removeRelayLayers(OnionUtil.decryptCell(data, routers.first().sharedSecret!!))
         } else {
             logger.debug { "Deserializing incoming cell." }
-            SerializeUtil.deserialize(data)
+            OnionUtil.deserialize(data)
         }
 
         return cell
@@ -162,10 +175,12 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
     /**
      * Convenience method combining send and receive.
+     * @param cell Cell to send to the last router.
+     * @return Cell received from the last router.
      */
-    fun exchange(request: OnionCell): OnionCell {
+    fun exchange(cell: OnionCell): OnionCell {
         logger.debug { "Sending request." }
-        send(request)
+        send(cell)
 
         logger.debug { "Waiting for response." }
         val response = receive()

@@ -17,6 +17,12 @@ fun main() {
 }
 
 // ? Test with curl? Use: curl -x socks5://127.0.0.1[:port] http://datakom.no
+/**
+ * Proxy that accepts connections from local applications and forwards them.
+ * Depending on the config the traffic is either routed through onion circuit or connected directly.
+ * @see Config
+ * @see Socks5
+ */
 class OnionProxy {
     private val logger = KotlinLogging.logger {}
     private val socks = when (Config.SOCKS_VERSION) {
@@ -44,6 +50,9 @@ class OnionProxy {
         }
     }
 
+    /**
+     * Handles client by doing handshake and command.
+     */
     private fun handleClient(socket: Socket) {
         val streams = SocketUtil.getSocketStreams(socket)
         val input = streams.first

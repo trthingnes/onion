@@ -9,6 +9,10 @@ enum class SocksAddressType(val code: Int, val size: Int) {
     IPV6(0x04, 16);
 
     companion object {
+        /**
+         * Gets an address type from the given code.
+         * @param code Address code.
+         */
         fun of(code: Int): SocksAddressType {
             return values().first { a -> a.code == code }
         }

@@ -6,7 +6,10 @@ import edu.ntnu.tobiasth.onionproxy.onion.cell.OnionControlCell
 import edu.ntnu.tobiasth.onionproxy.onion.cell.OnionControlCommand
 import edu.ntnu.tobiasth.onionproxy.onion.cell.OnionRelayCell
 import edu.ntnu.tobiasth.onionproxy.onion.cell.OnionRelayCommand
-import edu.ntnu.tobiasth.onionproxy.util.*
+import edu.ntnu.tobiasth.onionproxy.util.ByteArrayUtil
+import edu.ntnu.tobiasth.onionproxy.util.DiffieHellmanUtil
+import edu.ntnu.tobiasth.onionproxy.util.OnionUtil
+import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.PrintWriter
@@ -42,6 +45,10 @@ fun main() {
     exitProcess(0)
 }
 
+/**
+ * Router that can be a part of a circuit.
+ * @see OnionCircuit
+ */
 class OnionRouter(port: Int) {
     private val logger = KotlinLogging.logger {}
     private val keypair = DiffieHellmanUtil.getKeyPair()
@@ -65,6 +72,9 @@ class OnionRouter(port: Int) {
         }
     }
 
+    /**
+     * Subclass to keep track of connection information for each circuit.
+     */
     class ClientHandler(clientSocket: Socket, private val keypair: KeyPair) {
         private val logger = KotlinLogging.logger {}
         private val clientIo: Pair<BufferedReader, PrintWriter> = SocketUtil.getSocketIO(clientSocket)
@@ -82,7 +92,7 @@ class OnionRouter(port: Int) {
         }
 
         private fun handleHandshake() {
-            val handshake = SerializeUtil.deserialize(readByteArray(clientIo.first))
+            val handshake = OnionUtil.deserialize(readByteArray(clientIo.first))
             logger.debug { "Received handshake with id ${handshake.circuitId}." }
 
             if (handshake.command != OnionControlCommand.CREATE) {
@@ -95,9 +105,14 @@ class OnionRouter(port: Int) {
 
             val response = OnionControlCell(handshake.circuitId, OnionControlCommand.CREATE, keypair.public.encoded)
             logger.debug { "Writing handshake response." }
-            writeByteArray(clientIo.second, SerializeUtil.serialize(response))
+            writeByteArray(clientIo.second, OnionUtil.serialize(response))
         }
 
+        /**
+         * Handles request from proxy or router.
+         * @see OnionProxy
+         * @see OnionRouter
+         */
         private fun handleRequest() {
             logger.trace { "Waiting to read cell." }
             val data = readByteArray(clientIo.first)
@@ -119,6 +134,12 @@ class OnionRouter(port: Int) {
             writeByteArray(clientIo.second, OnionUtil.encryptCell(response, sharedSecret))
         }
 
+        /**
+         * Handles control cell from proxy.
+         * @see OnionProxy
+         * @see OnionControlCell
+         * @see OnionControlCommand
+         */
         private fun handleControlCell(cell: OnionControlCell): OnionControlCell {
             when (cell.command) {
                 OnionControlCommand.DESTROY -> {
@@ -130,6 +151,12 @@ class OnionRouter(port: Int) {
             }
         }
 
+        /**
+         * Handles relay cell from proxy.
+         * @see OnionProxy
+         * @see OnionRelayCell
+         * @see OnionRelayCommand
+         */
         private fun handleRelayCell(cell: OnionRelayCell): OnionRelayCell {
             when (cell.relayCommand) {
                 OnionRelayCommand.RELAY -> {
@@ -193,7 +220,7 @@ class OnionRouter(port: Int) {
 
                     // Get the response data from the new router.
                     val responseData = readByteArray(targetIo.first)
-                    val response = SerializeUtil.deserialize(responseData)
+                    val response = OnionUtil.deserialize(responseData)
 
                     if (response.command == OnionControlCommand.DESTROY) {
                         targetIo.first.close()
@@ -207,12 +234,20 @@ class OnionRouter(port: Int) {
             }
         }
 
+        /**
+         * Reads byte array from reader. Routers use Base64 for communication.
+         * @see Base64
+         */
         private fun readByteArray(reader: BufferedReader): ByteArray {
-            return Base64Util.decode(reader.readLine())
+            return Base64.getDecoder().decode(reader.readLine())
         }
 
+        /**
+         * Writes byte array to writer. Routers use Base64 for communication.
+         * @see Base64
+         */
         private fun writeByteArray(writer: PrintWriter, bytes: ByteArray) {
-            writer.println(Base64Util.encode(bytes))
+            writer.println(Base64.getEncoder().encodeToString(bytes))
             writer.flush()
         }
     }

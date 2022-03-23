@@ -10,6 +10,10 @@ enum class SocksCommand(val code: Int) {
     UNKNOWN(0xFF);
 
     companion object {
+        /**
+         * Gets a command from the given code.
+         * @param code Command code.
+         */
         fun of(code: Int): SocksCommand {
             return values().first { c -> c.code == code }
         }

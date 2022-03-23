@@ -2,7 +2,6 @@ package edu.ntnu.tobiasth.onionproxy.onion.cell
 
 /**
  * Commands used in control cells.
- * These are used when one router is communicating to another.
  */
 enum class OnionControlCommand {
     /**
@@ -11,12 +10,12 @@ enum class OnionControlCommand {
     RELAY,
 
     /**
-     * Begin an internal connection.
+     * Begin an internal connection with this router.
      */
     CREATE,
 
     /**
-     * End an internal connection.
+     * End an internal connection with this router.
      */
     DESTROY
 }

@@ -2,7 +2,6 @@ package edu.ntnu.tobiasth.onionproxy.onion.cell
 
 /**
  * Commands used in relay cells.
- * These are used when forwarding command cells or data/actions for externals.
  */
 enum class OnionRelayCommand {
     /**
@@ -11,7 +10,7 @@ enum class OnionRelayCommand {
     RELAY,
 
     /**
-     * Data for an external connection.
+     * Relay data to an external connection.
      */
     DATA,
 
@@ -26,12 +25,16 @@ enum class OnionRelayCommand {
     END,
 
     /**
-     * Begin an internal connection.
+     * Begin an internal connection with the given router.
+     * The router that receives this will send a create command to the given router.
+     * @see OnionControlCommand.CREATE
      */
     EXTEND,
 
     /**
-     * End an internal connection.
+     * End an internal connection to the next router in the chain.
+     * The router that receives this will send a destroy command to the next router.
+     * @see OnionControlCommand.DESTROY
      */
     TRUNCATE
 }

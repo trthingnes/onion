@@ -11,7 +11,9 @@ import edu.ntnu.tobiasth.onionproxy.socks.request.SocksResponse
 import edu.ntnu.tobiasth.onionproxy.util.OnionUtil
 import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
-import java.io.*
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import kotlin.concurrent.thread
 
 /**

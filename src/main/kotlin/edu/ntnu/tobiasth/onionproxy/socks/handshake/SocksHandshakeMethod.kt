@@ -1,5 +1,8 @@
 package edu.ntnu.tobiasth.onionproxy.socks.handshake
 
+/**
+ * Handshake methods used for authentication in the SOCKS protocol.
+ */
 enum class SocksHandshakeMethod(val code: Int) {
     NO_AUTHENTICATION_REQUIRED(0x00),
     GSSAPI(0x01),
@@ -11,6 +14,10 @@ enum class SocksHandshakeMethod(val code: Int) {
     NO_ACCEPTABLE_METHODS(0xFF);
 
     companion object {
+        /**
+         * Gets a handshake method from the given code.
+         * @param code Method code.
+         */
         fun of(code: Int): SocksHandshakeMethod {
             return values().first { m -> m.code == code }
         }

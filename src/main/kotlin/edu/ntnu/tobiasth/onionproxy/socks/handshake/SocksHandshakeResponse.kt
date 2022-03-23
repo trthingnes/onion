@@ -17,6 +17,7 @@ class SocksHandshakeResponse(private val method: SocksHandshakeMethod, request: 
 
     /**
      * Converts the response into a list of bytes to use with streams.
+     * @return List of bytes (has to be given as int because of Java).
      */
     fun toByteList(): List<Int> {
         return listOf(Config.SOCKS_VERSION, methodIndex)
