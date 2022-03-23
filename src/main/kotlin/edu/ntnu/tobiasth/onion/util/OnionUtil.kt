@@ -56,7 +56,7 @@ class OnionUtil {
             val cipher = EncryptionUtil.getDecryptCipher(sharedSecret)
             val serializedData = EncryptionUtil.useCipher(cipher, data)
 
-            return deserialize(serializedData)
+            return deserializeCell(serializedData)
         }
 
         /**
@@ -69,7 +69,7 @@ class OnionUtil {
          */
         fun encryptCell(cell: OnionCell, sharedSecret: ByteArray): ByteArray {
             val cipher = EncryptionUtil.getEncryptCipher(sharedSecret)
-            val serializedData = serialize(cell)
+            val serializedData = serializeCell(cell)
 
             return EncryptionUtil.useCipher(cipher, serializedData)
         }
@@ -80,7 +80,7 @@ class OnionUtil {
          * @return Byte array of cell.
          * @see OnionCell
          */
-        fun serialize(cell: OnionCell): ByteArray {
+        fun serializeCell(cell: OnionCell): ByteArray {
             val bos = ByteArrayOutputStream()
             val output = ObjectOutputStream(bos)
 
@@ -96,7 +96,7 @@ class OnionUtil {
          * @return Cell.
          * @see OnionCell
          */
-        fun deserialize(bytes: ByteArray): OnionCell {
+        fun deserializeCell(bytes: ByteArray): OnionCell {
             val bis = ByteArrayInputStream(bytes)
             val input = ObjectInputStream(bis)
 

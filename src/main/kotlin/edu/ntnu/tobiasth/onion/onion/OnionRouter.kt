@@ -11,6 +11,8 @@ import edu.ntnu.tobiasth.onion.util.OnionUtil
 import edu.ntnu.tobiasth.onion.util.SocketUtil
 import mu.KotlinLogging
 import java.io.BufferedReader
+import java.io.InputStream
+import java.io.OutputStream
 import java.io.PrintWriter
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -80,6 +82,7 @@ class OnionRouter(port: Int) {
         private var targetIsRouter: Boolean = true
         private var targetSocket: Socket? = null
         private lateinit var targetIo: Pair<BufferedReader, PrintWriter>
+        private lateinit var externalIo: Pair<InputStream, OutputStream>
         private lateinit var sharedSecret: ByteArray
 
         init {
@@ -91,7 +94,7 @@ class OnionRouter(port: Int) {
         }
 
         private fun handleHandshake() {
-            val handshake = OnionUtil.deserialize(readByteArray(clientIo.first))
+            val handshake = OnionUtil.deserializeCell(readByteArray(clientIo.first))
             logger.debug { "Received handshake with id ${handshake.circuitId}." }
 
             if (handshake.command != OnionControlCommand.CREATE) {
@@ -104,7 +107,7 @@ class OnionRouter(port: Int) {
 
             val response = OnionControlCell(handshake.circuitId, OnionControlCommand.CREATE, keypair.public.encoded)
             logger.debug { "Writing handshake response." }
-            writeByteArray(clientIo.second, OnionUtil.serialize(response))
+            writeByteArray(clientIo.second, OnionUtil.serializeCell(response))
         }
 
         /**
@@ -163,34 +166,47 @@ class OnionRouter(port: Int) {
                     return OnionRelayCell(cell.circuitId, OnionRelayCommand.RELAY, readByteArray(targetIo.first))
                 }
 
+                // This method uses external io, not target io.
                 OnionRelayCommand.DATA -> {
                     if (targetSocket == null || targetIsRouter) {
                         throw IllegalStateException("There is no remote connection to send data to")
                     }
 
-                    // TODO: Check that this works.
-                    targetIo.second.print(cell.data)
-                    val data = targetSocket!!.getInputStream().readAllBytes()
+                    logger.trace { "Writing data to external connection:" }
+                    logger.trace { String(cell.data) }
+                    externalIo.second.write(cell.data)
+                    externalIo.second.flush()
 
-                    return OnionRelayCell(cell.circuitId, OnionRelayCommand.DATA, data)
+                    logger.trace { "Waiting for data to be returned." }
+                    val buffer = ByteArray(Config.BUFFER_SIZE)
+                    val length = externalIo.first.read(buffer)
+                    logger.trace { "Data returned." }
+
+                    return OnionRelayCell(cell.circuitId, OnionRelayCommand.DATA, buffer.copyOfRange(0, length))
                 }
 
+                // This method uses external io, not target io.
                 OnionRelayCommand.BEGIN -> {
                     if (targetSocket != null) {
                         throw IllegalStateException("There is already an established connection")
                     }
 
+                    val info = SocketInfo.deserialize(cell.data)
+                    targetSocket = SocketUtil.getSocket(info.address, info.port)
+                    externalIo = SocketUtil.getSocketStreams(targetSocket!!)
                     targetIsRouter = false
-                    TODO("How will we get the IP and port to connect to? Serialize object!")
+
+                    return OnionRelayCell(cell.circuitId, OnionRelayCommand.BEGIN, ByteArray(0))
                 }
 
+                // This method uses external io, not target io.
                 OnionRelayCommand.END -> {
                     if (targetSocket == null || targetIsRouter) {
                         throw IllegalStateException("There is no remote connection to end")
                     }
 
-                    targetIo.first.close()
-                    targetIo.second.close()
+                    externalIo.first.close()
+                    externalIo.second.close()
                     targetSocket?.close()
 
                     return OnionRelayCell(cell.circuitId, OnionRelayCommand.END, ByteArray(0))
@@ -219,7 +235,7 @@ class OnionRouter(port: Int) {
 
                     // Get the response data from the new router.
                     val responseData = readByteArray(targetIo.first)
-                    val response = OnionUtil.deserialize(responseData)
+                    val response = OnionUtil.deserializeCell(responseData)
 
                     if (response.command == OnionControlCommand.DESTROY) {
                         targetIo.first.close()

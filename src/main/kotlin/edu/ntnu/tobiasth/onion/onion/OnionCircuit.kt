@@ -65,7 +65,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
         }
 
         val routerId = Config.ONION_ROUTER_DIRECTORY.getId(router).toByte()
-        val data = OnionUtil.serialize(
+        val data = OnionUtil.serializeCell(
             OnionControlCell(id, OnionControlCommand.CREATE, Config.ONION_PROXY_KEY.public.encoded)
         )
         val request = OnionRelayCell(
@@ -84,7 +84,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
         }
 
         // Verify control cell.
-        val createResponse = OnionUtil.deserialize(extendResponse.data)
+        val createResponse = OnionUtil.deserializeCell(extendResponse.data)
         if (createResponse !is OnionControlCell) {
             throw IllegalStateException("Unexpected cell type ${extendResponse.javaClass}")
         }
@@ -129,15 +129,30 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
      * @param port Port of service on external server.
      */
     fun begin(address: InetAddress, port: Int) {
-        val request = OnionRelayCell(id, OnionRelayCommand.BEGIN, address.address)
-        TODO()
+        val request = OnionRelayCell(id, OnionRelayCommand.BEGIN,  SocketInfo(address, port).serialize())
+        val response = exchange(request)
+
+        if (response !is OnionRelayCell) {
+            throw IllegalStateException("Unexpected cell type ${response.javaClass}")
+        }
+        if (response.relayCommand != OnionRelayCommand.BEGIN) {
+            throw IllegalStateException("Expected command BEGIN, but got ${response.command}")
+        }
     }
 
     /**
      * Ends the running external connection.
      */
     fun end() {
-        TODO()
+        val request = OnionRelayCell(id, OnionRelayCommand.END, ByteArray(0))
+        val response = exchange(request)
+
+        if (response !is OnionRelayCell) {
+            throw IllegalStateException("Unexpected cell type ${response.javaClass}")
+        }
+        if (response.relayCommand != OnionRelayCommand.END) {
+            throw IllegalStateException("Expected command END, but got ${response.command}")
+        }
     }
 
     /**
@@ -149,7 +164,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
             OnionUtil.encryptCell(addRelayLayers(cell), routers.first().sharedSecret!!)
         } else {
             logger.trace { "Serializing outgoing cell." }
-            OnionUtil.serialize(cell)
+            OnionUtil.serializeCell(cell)
         }
 
         io.second.println(Base64.getEncoder().encodeToString(data))
@@ -167,7 +182,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
             removeRelayLayers(OnionUtil.decryptCell(data, routers.first().sharedSecret!!))
         } else {
             logger.trace { "Deserializing incoming cell." }
-            OnionUtil.deserialize(data)
+            OnionUtil.deserializeCell(data)
         }
 
         return cell
