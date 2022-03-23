@@ -11,14 +11,13 @@ class Config {
         const val SOCKS_PORT: Int = 1080
         const val SOCKS_VERSION: Int = 5
         const val ONION_ENABLED: Boolean = false
-        const val ONION_CIRCUIT_SIZE: Int = 1
+        const val ONION_CIRCUIT_SIZE: Int = 3
         const val BUFFER_SIZE: Int = 4096
 
         val ONION_PROXY_KEY: KeyPair = DiffieHellmanUtil.getKeyPair()
-        val ONION_ROUTER_DIRECTORY: OnionRouterDirectory = OnionRouterDirectory(listOf(
-            OnionRouterInfo(InetAddress.getLoopbackAddress(), 1111),
-            OnionRouterInfo(InetAddress.getLoopbackAddress(), 2222),
-            OnionRouterInfo(InetAddress.getLoopbackAddress(), 3333),
-        ))
+        val ONION_ROUTER_PORTS: List<Int> = listOf(1111, 2222, 3333, 4444, 5555)
+        val ONION_ROUTER_DIRECTORY: OnionRouterDirectory = OnionRouterDirectory(
+            ONION_ROUTER_PORTS.map { OnionRouterInfo(InetAddress.getLoopbackAddress(), it) }
+        )
     }
 }

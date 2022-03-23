@@ -6,6 +6,7 @@ import edu.ntnu.tobiasth.onionproxy.util.*
 import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.PrintWriter
+import java.net.InetAddress
 import java.net.Socket
 import java.util.*
 import javax.crypto.interfaces.DHPublicKey
@@ -114,12 +115,29 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
     }
 
     /**
+     * Establishes an external connection through the circuit.
+     */
+    fun begin(address: InetAddress, port: Int) {
+        val request = OnionRelayCell(id, OnionRelayCommand.BEGIN, address.address)
+
+        TODO()
+    }
+
+    /**
+     * Ends an external connection.
+     */
+    fun end() {
+        TODO()
+    }
+
+    /**
      * Adds encryption layers and sends a cell to the first router in the circuit.
      */
     fun send(cell: OnionCell) {
         val data = if (routers.isNotEmpty()) {
             OnionUtil.encryptCell(addRelayLayers(cell), routers.first().sharedSecret!!)
         } else {
+            logger.debug { "Serializing outgoing cell." }
             SerializeUtil.serialize(cell)
         }
 
@@ -136,7 +154,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
         val cell = if (routers.isNotEmpty()) {
             removeRelayLayers(OnionUtil.decryptCell(data, routers.first().sharedSecret!!))
         } else {
-            logger.debug { "Deserializing incoming cell" }
+            logger.debug { "Deserializing incoming cell." }
             SerializeUtil.deserialize(data)
         }
 
@@ -166,7 +184,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
         if (routers.isNotEmpty()) {
             for(i in (1..routers.lastIndex).reversed()) {
-                logger.debug { "Adding a relay layer" }
+                logger.trace { "Adding a relay layer." }
                 layeredCell = OnionRelayCell(
                     layeredCell.circuitId,
                     OnionRelayCommand.RELAY,
@@ -187,7 +205,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
 
         if (routers.isNotEmpty()) {
             for(i in 1..routers.lastIndex) {
-                logger.debug { "Removing a relay layer." }
+                logger.trace { "Removing a relay layer." }
                 cell = OnionUtil.decryptCell(cell.data, routers[i].sharedSecret!!)
             }
         }

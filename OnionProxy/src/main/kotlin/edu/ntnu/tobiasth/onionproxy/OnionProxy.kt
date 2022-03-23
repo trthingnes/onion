@@ -7,6 +7,16 @@ import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 
+// * To test the proxy without the onion routing enabled, run this.
+fun main() {
+    if(!Config.ONION_ENABLED) {
+        OnionProxy()
+    }
+    else {
+        println("Disable onion features in config to run the proxy separately.")
+    }
+}
+
 // ? Test with curl? Use: curl -x socks5://127.0.0.1[:port] http://datakom.no
 class OnionProxy {
     private val logger = KotlinLogging.logger {}

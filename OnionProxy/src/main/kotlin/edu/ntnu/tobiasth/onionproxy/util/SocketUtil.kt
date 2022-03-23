@@ -24,7 +24,8 @@ class SocketUtil {
             return Pair(getDirectInput(socket), getDirectOutput(socket))
         }
 
-        fun getOnionStreams(circuit: OnionCircuit): Pair<InputStream, OutputStream> {
+        fun getOnionStreams(circuit: OnionCircuit, address: InetAddress, port: Int): Pair<InputStream, OutputStream> {
+            circuit.begin(address, port)
             return Pair(getOnionInput(circuit), getOnionOutput(circuit))
         }
 

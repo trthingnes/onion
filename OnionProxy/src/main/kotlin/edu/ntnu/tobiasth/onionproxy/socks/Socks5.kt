@@ -8,6 +8,7 @@ import edu.ntnu.tobiasth.onionproxy.socks.handshake.SocksHandshakeResponse
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksCommand
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksReply
 import edu.ntnu.tobiasth.onionproxy.socks.request.SocksResponse
+import edu.ntnu.tobiasth.onionproxy.util.OnionUtil
 import edu.ntnu.tobiasth.onionproxy.util.SocketUtil
 import mu.KotlinLogging
 import java.io.*
@@ -41,7 +42,16 @@ class Socks5: SocksProtocol {
         logger.info { "Performing command ${request.command}." }
         when (request.command) {
             SocksCommand.CONNECT -> {
-                val remoteStreams = SocketUtil.getSocketStreams(request.destAddress, request.destPort)
+                val remoteStreams = if(Config.ONION_ENABLED) {
+                    SocketUtil.getOnionStreams(
+                        OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, Config.ONION_ROUTER_DIRECTORY),
+                        request.destAddress,
+                        request.destPort
+                    )
+                }
+                else {
+                    SocketUtil.getSocketStreams(request.destAddress, request.destPort)
+                }
 
                 val response = SocksResponse(SocksReply.SUCCEEDED, Config.SOCKS_PORT)
                 logger.debug { "Sending response to client." }
