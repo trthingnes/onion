@@ -176,7 +176,7 @@ class OnionCircuit(val id: UUID, router: OnionRouterInfo) {
      * @return Cell received from the last router.
      */
     fun receive(): OnionCell {
-        val data = Base64.getDecoder().decode(io.first.readLine())
+        val data = Base64.getDecoder().decode(io.first.readLine()) ?: ByteArray(0)
 
         val cell = if (routers.isNotEmpty()) {
             removeRelayLayers(OnionUtil.decryptCell(data, routers.first().sharedSecret!!))

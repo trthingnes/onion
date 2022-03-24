@@ -17,7 +17,6 @@ fun main() {
     }
 }
 
-// ? Test with curl? Use: curl -x socks5://127.0.0.1[:port] http://datakom.no
 /**
  * Proxy that accepts connections from local applications and forwards them.
  * Depending on the config the traffic is either routed through onion circuit or connected directly.

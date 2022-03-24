@@ -5,6 +5,7 @@ import edu.ntnu.tobiasth.onion.onion.OnionRouter
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
+// ? Test with curl? Use: 'curl -x socks5://127.0.0.1 http://datakom.no'
 /**
  * Runs onion routers on the configured ports, and a single proxy on the configured port.
  */

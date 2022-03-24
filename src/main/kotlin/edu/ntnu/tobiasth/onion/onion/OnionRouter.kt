@@ -180,9 +180,10 @@ class OnionRouter(port: Int) {
                     logger.trace { "Waiting for data to be returned." }
                     val buffer = ByteArray(Config.BUFFER_SIZE)
                     val length = externalIo.first.read(buffer)
+                    val data = if (length > 0) buffer.copyOfRange(0, length) else ByteArray(0)
                     logger.trace { "Data returned." }
 
-                    return OnionRelayCell(cell.circuitId, OnionRelayCommand.DATA, buffer.copyOfRange(0, length))
+                    return OnionRelayCell(cell.circuitId, OnionRelayCommand.DATA, data)
                 }
 
                 // This method uses external io, not target io.
