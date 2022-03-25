@@ -1,5 +1,4 @@
-import edu.ntnu.tobiasth.onion.Config
-import edu.ntnu.tobiasth.onion.onion.OnionRouter
+
 import edu.ntnu.tobiasth.onion.onion.cell.OnionControlCell
 import edu.ntnu.tobiasth.onion.onion.cell.OnionControlCommand
 import edu.ntnu.tobiasth.onion.onion.cell.OnionRelayCell
@@ -7,10 +6,8 @@ import edu.ntnu.tobiasth.onion.onion.cell.OnionRelayCommand
 import edu.ntnu.tobiasth.onion.util.OnionUtil
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import java.security.SecureRandom
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 
 class OnionUtilTest {
@@ -58,19 +55,5 @@ class OnionUtilTest {
         val decryptedCell = OnionUtil.decryptCell(encrypted, sharedSecret)
 
         assertEquals(originalCell, decryptedCell)
-    }
-
-    @Test
-    @DisplayName("Circuit with the configured number of routers can be built.")
-    internal fun testCircuitCanBeBuilt() {
-        val ports = mutableListOf<Int>()
-        ports.addAll(Config.ONION_ROUTER_PORTS)
-        ports.forEach {
-            thread { OnionRouter(it) }
-        }
-
-        assertDoesNotThrow {
-            OnionUtil.createCircuit(Config.ONION_CIRCUIT_SIZE, Config.ONION_ROUTER_DIRECTORY)
-        }
     }
 }
