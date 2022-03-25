@@ -1,5 +1,5 @@
 
-import edu.ntnu.tobiasth.onion.util.ByteArrayUtil
+import edu.ntnu.tobiasth.onionrouting.util.ByteArrayUtil
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContentEquals

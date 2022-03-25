@@ -1,9 +1,9 @@
 
-import edu.ntnu.tobiasth.onion.onion.cell.OnionControlCell
-import edu.ntnu.tobiasth.onion.onion.cell.OnionControlCommand
-import edu.ntnu.tobiasth.onion.onion.cell.OnionRelayCell
-import edu.ntnu.tobiasth.onion.onion.cell.OnionRelayCommand
-import edu.ntnu.tobiasth.onion.util.OnionUtil
+import edu.ntnu.tobiasth.onionrouting.onion.cell.OnionControlCell
+import edu.ntnu.tobiasth.onionrouting.onion.cell.OnionControlCommand
+import edu.ntnu.tobiasth.onionrouting.onion.cell.OnionRelayCell
+import edu.ntnu.tobiasth.onionrouting.onion.cell.OnionRelayCommand
+import edu.ntnu.tobiasth.onionrouting.util.OnionUtil
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.security.SecureRandom
