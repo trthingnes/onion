@@ -1,4 +1,4 @@
-name: Maven
+name: Test and lint
 
 on:
   push:

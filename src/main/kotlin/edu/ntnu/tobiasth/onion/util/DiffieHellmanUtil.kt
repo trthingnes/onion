@@ -56,16 +56,6 @@ class DiffieHellmanUtil {
         }
 
         /**
-         * Get private key from an encoded byte array.
-         * @param bytes Private key as bytes.
-         * @return DH private key.
-         */
-        fun getPrivateKeyFromEncoded(bytes: ByteArray): DHPrivateKey {
-            val keyFactory = KeyFactory.getInstance("DH")
-            return keyFactory.generatePrivate(X509EncodedKeySpec(bytes)) as DHPrivateKey
-        }
-
-        /**
          * Get key agreement from callers private key.
          */
         private fun getKeyAgreement(key: PrivateKey, spec: DHParameterSpec): KeyAgreement {

@@ -62,8 +62,8 @@ class Socks5 : SocksProtocol {
                 exchangeData(input, output, remoteStreams.first, remoteStreams.second)
             }
 
-            // TODO: SocksCommand.BIND {}
-            // TODO: SocksCommand.UDP_ASSOCIATE {}
+            // ! SocksCommand.BIND -> {}
+            // ! SocksCommand.UDP_ASSOCIATE -> {}
 
             else -> {
                 val response = SocksResponse(SocksReply.COMMAND_NOT_SUPPORTED, Config.SOCKS_PORT)
