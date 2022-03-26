@@ -1,0 +1,22 @@
+$dokka.format:javadoc-v1
+$dokka.linkExtension:html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.onion/OnionRouter.ClientHandler///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/onion/OnionRouter.ClientHandler.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.onion/SocketInfo.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/onion/SocketInfo.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.socks.handshake/SocksHandshakeMethod.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/socks/handshake/SocksHandshakeMethod.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.socks.request/SocksAddressType.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/socks/request/SocksAddressType.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.socks.request/SocksCommand.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/socks/request/SocksCommand.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.util/ByteArrayUtil.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/util/ByteArrayUtil.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.util/DiffieHellmanUtil.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/util/DiffieHellmanUtil.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.util/EncryptionUtil.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/util/EncryptionUtil.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.util/OnionUtil.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/util/OnionUtil.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting.util/SocketUtil.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/util/SocketUtil.Companion.html
+$dokka.location:edu.ntnu.tobiasth.onionrouting/Config.Companion///PointingToDeclaration/edu/ntnu/tobiasth/onionrouting/Config.Companion.html
+edu.ntnu.tobiasth.onionrouting
+edu.ntnu.tobiasth.onionrouting.onion
+edu.ntnu.tobiasth.onionrouting.onion.cell
+edu.ntnu.tobiasth.onionrouting.onion.stream
+edu.ntnu.tobiasth.onionrouting.socks
+edu.ntnu.tobiasth.onionrouting.socks.handshake
+edu.ntnu.tobiasth.onionrouting.socks.request
+edu.ntnu.tobiasth.onionrouting.util
+
